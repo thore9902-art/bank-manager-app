@@ -65,4 +65,6 @@ app.get('/api/status',(req,res)=>res.json({status:'OK'}));
 app.get('/',(req,res)=>res.redirect('/master/login'));
 app.use((err,req,res,next)=>{console.error(err);res.status(500).json({error:'Internal server error'});});
 const port=Number(process.env.PORT||3000);
-app.listen(port,'127.0.0.1',()=>console.log(`Bank Manager running at http://127.0.0.1:${port}`));
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Bank Manager running on port ${port}`);
+});
