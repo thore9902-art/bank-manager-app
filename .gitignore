@@ -1,0 +1,20 @@
+
+node_modules/
+.env
+.env.*
+!.env.example
+*.log
+credentials.json
+*service-account*.json
+*service_account*.json
+*.pem
+*.key
+.DS_Store
+# Backup and temporary files
+*.backup.*
+*.before-*
+public-backup/
+*.bak
+
+# Local test scripts
+test-google-sheets.js

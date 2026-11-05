@@ -1,0 +1,65 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+  <title>Master Admin - Manage Users</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <main>
+    <section class="card">
+      <header>
+        <h1>Manage Users</h1>
+        <a href="/master/dashboard">Back to Dashboard</a>
+      </header>
+
+      <h2>Create Manager</h2>
+      <form id="createManagerForm">
+        <p>
+          <label for="username">Username</label>
+          <input id="username" name="username"
+                 minlength="3" maxlength="50"
+                 autocomplete="off" required>
+        </p>
+        <p>
+          <label for="password">Password</label>
+          <input id="password" name="password"
+                 type="password" minlength="12"
+                 maxlength="128"
+                 autocomplete="new-password" required>
+        </p>
+        <button type="submit">Create Manager</button>
+      </form>
+
+      <h2>Existing Managers</h2>
+      <button id="refreshManagers" type="button">
+        Refresh List
+      </button>
+
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="managerTable">
+            <tr>
+              <td colspan="3">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p id="message" role="status" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <script src="/assets/master-users.js" defer></script>
+</body>
+</html>

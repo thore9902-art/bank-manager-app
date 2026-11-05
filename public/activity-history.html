@@ -1,0 +1,196 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+  <title>Bank Manager - Activity History</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f3f6fb;
+      color: #18283e;
+    }
+    header {
+      background: #142d4e;
+      color: white;
+      padding: 22px 30px;
+    }
+    main {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 18px;
+    }
+    .panel {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 3px 15px #00000012;
+    }
+    .filters {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    input, select {
+      padding: 12px;
+      border: 1px solid #ccd5e0;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    input { flex: 1; min-width: 200px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 13px;
+      border-bottom: 1px solid #e6ebf1;
+      text-align: left;
+      font-size: 14px;
+    }
+    th { background: #edf2f8; }
+    .table-wrap { overflow-x: auto; }
+    .success { color: #16834b; font-weight: bold; }
+    .requested { color: #a46a0a; }
+    a { color: #1c70d3; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Bank Manager - Activity History</h1>
+    <p>Account activity and audit records</p>
+  </header>
+
+  <main>
+    <p><a href="/master/dashboard">Back to Master Dashboard</a></p>
+
+    <section class="panel">
+      <h2>Activity Records</h2>
+
+      <div class="filters">
+        <input id="search" placeholder="Search username, account ID...">
+        <select id="action">
+          <option value="">All Actions</option>
+          <option value="CREATED">Created</option>
+          <option value="UPDATED">Updated</option>
+          <option value="DELETED">Deleted</option>
+          <option value="RESTORED">Restored</option>
+          <option value="REQUESTED">Requested</option>
+        </select>
+      </div>
+
+      <p id="status">Loading activity records...</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date & Time</th>
+              <th>Username</th>
+              <th>Role</th>
+              <th>Action</th>
+              <th>Account ID</th>
+              <th>Outcome</th>
+            </tr>
+          </thead>
+          <tbody id="records"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let events = [];
+
+    const search = document.getElementById('search');
+    const action = document.getElementById('action');
+    const records = document.getElementById('records');
+    const status = document.getElementById('status');
+
+    function render() {
+      const term = search.value.toLowerCase().trim();
+      const selected = action.value;
+
+      const filtered = events.filter(event => {
+        const matchesSearch = [
+          event.username,
+          event.accountId,
+          event.role,
+          event.action
+        ].some(value =>
+          String(value || '').toLowerCase().includes(term)
+        );
+
+        return matchesSearch &&
+          (!selected || event.action.includes(selected));
+      });
+
+      records.replaceChildren();
+
+      for (const event of filtered) {
+        const tr = document.createElement('tr');
+
+        const date = new Date(event.timestamp);
+        const values = [
+          Number.isNaN(date.getTime())
+            ? event.timestamp
+            : date.toLocaleString(),
+          event.username,
+          event.role,
+          event.action,
+          event.accountId,
+          event.outcome
+        ];
+
+        for (const value of values) {
+          const td = document.createElement('td');
+          td.textContent = value || '-';
+
+          if (value === event.outcome) {
+            if (value === 'SUCCESS') td.className = 'success';
+            if (value === 'REQUESTED') td.className = 'requested';
+          }
+
+          tr.appendChild(td);
+        }
+
+        records.appendChild(tr);
+      }
+
+      status.textContent = `Showing ${filtered.length} of ${events.length} records`;
+    }
+
+    async function loadHistory() {
+      try {
+        const response = await fetch('/api/google/activity-history', {
+          credentials: 'same-origin',
+          cache: 'no-store'
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            response.status === 401
+              ? 'Please log in again.'
+              : 'Unable to load activity records.'
+          );
+        }
+
+        const data = await response.json();
+        events = Array.isArray(data.events) ? data.events : [];
+        render();
+      } catch (error) {
+        status.textContent = error.message;
+      }
+    }
+
+    search.addEventListener('input', render);
+    action.addEventListener('change', render);
+    loadHistory();
+  </script>
+</body>
+</html>

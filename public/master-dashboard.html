@@ -1,0 +1,67 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
+  <title>Master Administrator Dashboard</title>
+
+  <link rel="stylesheet" href="/assets/style.css">
+  <a href="/master/activity-history"
+   style="display:inline-block; padding:12px 20px;
+          background:#1769aa; color:white;
+          text-decoration:none; border-radius:8px;
+          margin:10px 0;">
+  View Activity History
+</a>
+</head>
+
+<body>
+  <main>
+    <section class="card">
+
+      <header>
+        <h1>Master Administrator Dashboard</h1>
+        <button id="logout">Log out</button>
+      </header>
+
+      <p id="welcome">Loading...</p>
+
+      <h2>Administration</h2>
+
+      <p>
+        <a class="btn" href="/master/users">
+          Manage Users
+        </a>
+      </p>
+
+      <p>
+        <a class="btn" href="/master/permissions">
+          Manage Manager Permissions
+        </a>
+      </p>
+
+      <p>
+        <a class="btn" href="/bank/dashboard">
+          Open Bank Manager
+        </a>
+      </p>
+
+      <p>
+        <small>
+          Local development only.
+          Do not store real banking passwords,
+          card CVV or ATM PIN.
+        </small>
+      </p>
+
+      <p id="message"></p>
+
+    </section>
+  </main>
+
+  <script src="/assets/dashboard.js" defer></script>
+</body>
+</html>
