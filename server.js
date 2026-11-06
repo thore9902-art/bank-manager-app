@@ -67,7 +67,9 @@ app.get('/bank/dashboard', (req, res) => {
 page('/manager/dashboard','manager-dashboard.html','MANAGER');
 page('/master/permissions','master-permissions.html','MASTER');
 
-page('/master/users','master-users.html','MASTER');page('/master/users', 'master-users.html', 'MASTER');
+
+page('/master/users', 'master-users.html', 'MASTER');
+
 page('/master/activity-history', 'activity-history.html', 'MASTER');
 for(const name of ['login.js','dashboard.js','master-permissions.js','master-users.js','style.css'])app.get('/assets/'+name,(req,res)=>res.sendFile(path.join(__dirname,'public',name)));
 app.get('/api/status',(req,res)=>res.json({status:'OK'}));
