@@ -542,7 +542,7 @@
     const data = await response.json();
 
     if (data.role === 'MASTER') {
-      const link = document.getElementById('manageUsersLink');
+      const link = document.querySelector('.sidebar a[href="/master/users"]')
       if (link) {
         link.style.display = 'block';
       }
