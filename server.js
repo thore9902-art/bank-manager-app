@@ -47,6 +47,14 @@ app.get('/bank/assets/master-navigation.js', authenticated(), (req, res) => {
   res.sendFile(path.join(__dirname, 'google-dashboard', 'master-navigation.js'));
 });
 
+app.get('/bank/assets/logout.js', authenticated(), (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.type('application/javascript');
+  res.sendFile(
+    path.join(__dirname, 'google-dashboard', 'logout.js')
+  );
+});
+
 
 // Protected Google-style dashboard for Master and Manager
 app.get('/bank/dashboard', (req, res) => {
