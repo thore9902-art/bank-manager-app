@@ -18,6 +18,18 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!tokenResponse.ok) {
         throw new Error('Unable to verify session');
       }
+      
+const roleResponse = await fetch('/api/google/my-permissions', {
+  credentials: 'same-origin',
+  cache: 'no-store'
+});
+
+if (!roleResponse.ok) {
+  throw new Error('Unable to identify user role');
+}
+
+const { role: userRole } = await roleResponse.json();
+
 
       const { csrfToken } = await tokenResponse.json();
 
@@ -35,7 +47,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // Redirect to login after successful logout
-      window.location.replace('/master/login');
+      
+const loginPage = userRole === 'MANAGER'
+  ? '/manager/login'
+  : '/master/login';
+
+window.location.replace(loginPage);
+
     } catch (error) {
       console.error('Logout error:', error);
       alert('Unable to log out. Please try again.');
