@@ -10,7 +10,10 @@ const auth=require('./auth');
 const permissions=require('./permissions');
 const {authenticated}=require('./security');
 if(!process.env.SESSION_SECRET||process.env.SESSION_SECRET.length<32)throw new Error('Set SESSION_SECRET (32+ characters) in .env');
-const app=express();app.disable('x-powered-by');app.use(helmet());app.use(express.json({limit:'10kb'}));
+const app=express();
+
+app.set('trust proxy', 1);
+app.disable('x-powered-by');app.use(helmet());app.use(express.json({limit:'10kb'}));
 app.use('/api',rateLimit({windowMs:15*60*1000,limit:300,standardHeaders:'draft-7',legacyHeaders:false}));
 app.use(session({name:'bank.sid',store:new PgStore({pool,tableName:'user_sessions',createTableIfMissing:false}),secret:process.env.SESSION_SECRET,resave:false,saveUninitialized:false,cookie:{httpOnly:true,secure:false,sameSite:'strict',maxAge:30*60*1000}}));
 app.use('/api/auth',auth);
