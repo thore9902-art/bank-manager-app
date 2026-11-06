@@ -215,11 +215,23 @@
 
 <body>
 
-  <aside class="sidebar">
-    <div class="brand">🏦 Bank Manager</div>
-    <div class="nav">Dashboard</div>
-    <p>Private account reference manager</p>
-  </aside>
+<aside class="sidebar">
+  <div class="brand">🏦 Bank Manager</div>
+
+  <div class="nav">Dashboard</div>
+
+  <a
+    id="manageUsersLink"
+    href="/master/users"
+    class="nav"
+    style="display:none; color:white; text-decoration:none;"
+  >
+    Manage Users
+  </a>
+
+  <p>Private account reference manager</p>
+</aside>
+
 
   <main>
 
@@ -516,6 +528,30 @@
     src="/bank/assets/accounts-view.js"
     defer>
   </script>
+
+<script>
+(async function showMasterNavigation() {
+  try {
+    const response = await fetch('/api/google/my-permissions', {
+      credentials: 'same-origin',
+      cache: 'no-store'
+    });
+
+    if (!response.ok) return;
+
+    const data = await response.json();
+
+    if (data.role === 'MASTER') {
+      const link = document.getElementById('manageUsersLink');
+      if (link) {
+        link.style.display = 'block';
+      }
+    }
+  } catch (error) {
+    console.error('Unable to load navigation permissions');
+  }
+})();
+</script>
 
 </body>
 </html>
