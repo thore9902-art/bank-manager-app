@@ -4,183 +4,463 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>My Bank Manager</title>
-
+  <title>Bank Manager | Dashboard</title>
   <style>
+    :root {
+      --navy: #101e38;
+      --navy-light: #1b3155;
+      --blue: #2563eb;
+      --blue-light: #eff6ff;
+      --bg: #f4f7fc;
+      --surface: #ffffff;
+      --ink: #17243a;
+      --muted: #6b7890;
+      --border: #e4eaf2;
+      --green: #059669;
+      --shadow: 0 8px 30px rgba(25, 46, 82, .05);
+    }
+
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      font: 15px Arial, sans-serif;
-      background: #f3f6fb;
-      color: #1e293b;
+      background: var(--bg);
+      color: var(--ink);
+      font: 14px/1.55 "Segoe UI", Arial, sans-serif;
     }
 
-    .sidebar {
-      width: 230px;
-      position: fixed;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      background: #142b49;
-      color: white;
-      padding: 25px 18px;
+    button, input, select {
+      font: inherit;
     }
 
-    .brand {
-      font-size: 21px;
-      font-weight: bold;
-    }
-
-    .nav {
-      background: #ffffff18;
-      padding: 14px;
-      margin-top: 30px;
-      border-radius: 8px;
-    }
-
-    main {
-      margin-left: 230px;
-      padding: 28px;
-    }
-
-    h1 { margin: 0 0 8px; }
-    h2 { font-size: 19px; margin: 0 0 12px; }
-
-    .muted {
-      color: #64748b;
-      font-size: 14px;
-    }
-
-    .heading {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-    }
-
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 22px;
-      margin-bottom: 20px;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 3px 10px #00000008;
-    }
-
-    .number {
-      font-size: 30px;
-      font-weight: bold;
-      margin-top: 12px;
-      color: #142b49;
-    }
-
-    button {
-      border: 0;
-      border-radius: 7px;
-      padding: 11px 15px;
-      font-weight: bold;
-      cursor: pointer;
-    }
+    button { cursor: pointer; }
 
     button:disabled {
       opacity: .5;
       cursor: not-allowed;
     }
 
-    .primary {
-      background: #2563eb;
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    a:focus-visible {
+      outline: 2px solid #60a5fa;
+      outline-offset: 3px;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 250px;
+      background: linear-gradient(165deg, #192f53, #0b172d);
+      color: #fff;
+      padding: 28px 16px;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 10px 26px;
+      border-bottom: 1px solid #ffffff20;
+      margin-bottom: 24px;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border-radius: 13px;
+      background: #ffffff1b;
+      font-size: 24px;
+    }
+
+    .brand strong {
+      display: block;
+      font-size: 18px;
+      letter-spacing: -.4px;
+    }
+
+    .brand small {
+      color: #aebed5;
+      font-size: 11px;
+    }
+
+    .nav-label {
+      padding: 0 14px;
+      margin: 18px 0 10px;
+      color: #91a5c4;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      margin: 5px 0;
+      padding: 13px 15px;
+      color: #d4deec;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 11px;
+      text-align: left;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .nav:hover {
+      background: #ffffff13;
       color: white;
     }
 
+    .nav.active {
+      background: #3474ef;
+      color: white;
+      box-shadow: 0 5px 15px #00000020;
+    }
+
+    .nav-icon {
+      font-size: 17px;
+      width: 23px;
+      text-align: center;
+    }
+
+    .sidebar-footer {
+      margin: 38px 10px 0;
+      padding-top: 20px;
+      border-top: 1px solid #ffffff20;
+      color: #9fb0c9;
+      font-size: 12px;
+    }
+
+    main {
+      margin-left: 250px;
+      padding: 30px 34px 55px;
+      max-width: 1900px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      color: var(--blue);
+      text-transform: uppercase;
+      letter-spacing: 1.3px;
+      font-size: 11px;
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+
+    h1 {
+      font-size: clamp(25px, 3vw, 32px);
+      letter-spacing: -.8px;
+      margin: 0 0 4px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: -.3px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .primary, #addAccountButton {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 18px;
+      background: var(--blue);
+      color: white;
+      font-weight: 700;
+      box-shadow: 0 4px 12px #2563eb25;
+    }
+
+    .primary:hover, #addAccountButton:hover {
+      background: #1d4ed8;
+    }
+
     .secondary {
-      background: #e2e8f0;
-      color: #1e293b;
+      background: #eef2f8;
+      color: #263a59;
+      border: 1px solid #e0e7f0;
+      border-radius: 10px;
+      padding: 11px 15px;
+      font-weight: 650;
+    }
+
+    .secondary:hover { background: #e2e8f0; }
+
+    .welcome {
+      padding: 23px 28px;
+      border-radius: 18px;
+      background: linear-gradient(115deg, #1a3765, #2657a4);
+      color: white;
+      margin-bottom: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      overflow: hidden;
+    }
+
+    .welcome h2 {
+      font-size: 21px;
+      margin-bottom: 7px;
+    }
+
+    .welcome p {
+      color: #d5e3fa;
+      margin: 0;
+      max-width: 560px;
+    }
+
+    .welcome-symbol {
+      font-size: 65px;
+      opacity: .55;
+      flex-shrink: 0;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+      min-width: 0;
+      margin-bottom: 22px;
+    }
+
+    .stats .card {
+      margin: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stats .card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 4px;
+      background: var(--blue);
+    }
+
+    .stats .card:nth-child(2)::before {
+      background: #10b981;
+    }
+
+    .stats .card:nth-child(3)::before {
+      background: #8b5cf6;
+    }
+
+    .stat-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .stat-icon {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--blue-light);
+      font-size: 23px;
+    }
+
+    .stats .card:nth-child(2) .stat-icon {
+      background: #ecfdf5;
+    }
+
+    .stats .card:nth-child(3) .stat-icon {
+      background: #f5f3ff;
+    }
+
+    .number {
+      font-size: 37px;
+      font-weight: 800;
+      line-height: 1.2;
+      color: #142b4b;
+      margin-top: 15px;
+    }
+
+    .stat-caption {
+      color: #94a0b2;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 19px;
+    }
+
+    .section-header p {
+      margin: 5px 0 0;
     }
 
     .toolbar {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 18px;
+      gap: 11px;
+      margin-bottom: 20px;
     }
 
     input, select {
-      padding: 11px;
-      border: 1px solid #cbd5e1;
-      border-radius: 7px;
-      font: inherit;
+      min-height: 44px;
+      border: 1px solid #d5deea;
       background: white;
+      border-radius: 10px;
+      padding: 10px 13px;
+      color: var(--ink);
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: #60a5fa;
     }
 
     .toolbar input {
-      flex: 1;
-      min-width: 180px;
+      flex: 1 1 250px;
+      min-width: 0;
     }
 
-    .toolbar select { width: 175px; }
+    .toolbar select {
+      flex: 0 1 190px;
+      min-width: 160px;
+    }
 
-    .table-wrap { overflow-x: auto; }
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
 
     table {
       width: 100%;
+      min-width: 760px;
       border-collapse: collapse;
-      min-width: 700px;
     }
 
     th, td {
-      padding: 12px;
       text-align: left;
-      border-bottom: 1px solid #e2e8f0;
-      font-size: 14px;
+      padding: 15px;
+      border-bottom: 1px solid #edf1f6;
+      vertical-align: middle;
+      font-size: 13px;
     }
 
-    th { background: #f8fafc; }
+    th {
+      background: #f7f9fd;
+      color: #63718a;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .45px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
 
-    #message {
-      margin-bottom: 15px;
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: #f8fbff;
     }
 
     #message:empty { display: none; }
 
-    .error { color: #b91c1c; }
-    .success { color: #166534; }
+    #message {
+      margin-bottom: 16px;
+    }
 
-    #addAccountDialog,
-    #editAccountDialog {
-      width: min(460px, 94vw);
+    .error { color: #b91c1c; }
+    .success { color: #15803d; }
+
+    #connectedAccountsMessage {
+      color: var(--muted);
+      margin-bottom: 15px;
+    }
+
+    .edit-account-button {
+      background: #dbeafe;
+      color: #1d4ed8;
+      padding: 8px 13px;
+      border: none;
+      border-radius: 9px;
+      font-weight: 700;
+    }
+
+    .edit-account-button:hover {
+      background: #bfdbfe;
+    }
+
+    #addAccountDialog, #editAccountDialog {
+      width: min(500px, 94vw);
       max-height: 90vh;
       overflow-y: auto;
-      border: none;
-      border-radius: 14px;
-      padding: 25px;
-      box-shadow: 0 15px 50px rgba(0,0,0,0.25);
+      padding: 28px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 24px 70px #0b173044;
     }
 
     #addAccountDialog::backdrop,
     #editAccountDialog::backdrop {
-      background: rgba(0,0,0,0.5);
+      background: #0b1730a6;
     }
 
-    #addAccountForm,
-    #editAccountForm {
+    #addAccountForm, #editAccountForm {
       display: grid;
-      gap: 12px;
+      gap: 14px;
     }
 
-    #addAccountForm label,
-    #editAccountForm label {
+    #addAccountForm h2, #editAccountForm h2 {
+      margin-bottom: 8px;
+    }
+
+    #addAccountForm label, #editAccountForm label {
       display: grid;
-      gap: 5px;
-      font-weight: 600;
+      gap: 6px;
+      font-weight: 650;
+      color: #334155;
     }
 
     #addAccountForm input,
@@ -190,98 +470,186 @@
       width: 100%;
     }
 
-    #addAccountMessage,
-    #editAccountMessage {
-      font-size: 14px;
+    #addAccountMessage, #editAccountMessage {
+      font-size: 13px;
     }
 
-    .edit-account-button {
-      background: #dbeafe;
-      color: #1d4ed8;
-      padding: 8px 14px;
+    @media (max-width: 1050px) {
+      .sidebar { width: 220px; }
+      main {
+        margin-left: 220px;
+        padding: 25px 20px;
+      }
+      .stats { gap: 12px; }
+      .card { padding: 19px; }
     }
 
-    .edit-account-button:hover {
-      background: #bfdbfe;
+    @media (max-width: 760px) {
+      .sidebar {
+        position: relative;
+        width: 100%;
+        padding: 15px;
+      }
+
+      .brand {
+        margin-bottom: 10px;
+        padding-bottom: 12px;
+      }
+
+      .nav-label, .sidebar-footer { display: none; }
+
+      .nav {
+        display: inline-flex;
+        width: auto;
+        margin-right: 6px;
+        padding: 10px 12px;
+      }
+
+      main {
+        margin: 0;
+        padding: 20px 14px 35px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .welcome { padding: 20px; }
+      .welcome-symbol { display: none; }
+      .toolbar input, .toolbar select {
+        flex: 1 1 100%;
+      }
+      .card { padding: 17px; }
+      .topbar { align-items: flex-start; }
     }
 
-    @media (max-width: 850px) {
-      .sidebar { display: none; }
-      main { margin-left: 0; padding: 16px; }
-      .stats { grid-template-columns: 1fr; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition: none !important;
+      }
     }
   </style>
 </head>
-
 <body>
 
-<aside class="sidebar">
-  <div class="brand">🏦 Bank Manager</div>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">🏦</div>
+      <div>
+        <strong>Bank Manager</strong>
+        <small>Administration Portal</small>
+      </div>
+    </div>
 
-  <div class="nav">Dashboard</div>
+    <div class="nav-label">Main Menu</div>
 
-  <a
-    id="manageUsersLink"
-    href="/master/users"
-    class="nav"
-    style="display:none; color:white; text-decoration:none;"
-  >
-    Manage Users
-  </a>
+    <div class="nav active" aria-current="page">
+      <span class="nav-icon">▦</span>
+      Dashboard
+    </div>
 
-<button
-  id="logoutButton"
-  type="button"
-  class="nav">
-  Logout
-</button>
+    <a
+      id="manageUsersLink"
+      href="/master/users"
+      class="nav"
+      style="display:none"
+    >
+      <span class="nav-icon">👥</span>
+      Manage Users
+    </a>
 
-  <p>Private account reference manager</p>
-</aside>
+    <div class="nav-label">Account</div>
 
+    <button
+      id="logoutButton"
+      type="button"
+      class="nav"
+    >
+      <span class="nav-icon">↪</span>
+      Logout
+    </button>
+
+    <div class="sidebar-footer">
+      Private Bank Account Manager
+    </div>
+  </aside>
 
   <main>
 
-    <div class="heading">
+    <header class="topbar">
       <div>
-        <h1>My Bank Manager</h1>
+        <div class="eyebrow">Overview</div>
+        <h1>Bank Dashboard</h1>
         <div class="muted">
-          Personal Bank Account Dashboard
+          Manage and monitor your saved bank accounts
         </div>
       </div>
 
       <button id="addAccountButton" type="button">
         + Add Account
       </button>
-    </div>
+    </header>
 
     <div id="message" role="status"></div>
 
-    <div class="stats">
+    <section class="welcome">
+      <div>
+        <h2>Welcome to Bank Manager</h2>
+        <p>
+          View account summaries, manage your saved
+          accounts, and keep your records organized.
+        </p>
+      </div>
+      <div class="welcome-symbol" aria-hidden="true">🏦</div>
+    </section>
+
+    <section class="stats" aria-label="Account summary">
+
       <div class="card">
-        <div class="muted">Total Accounts</div>
+        <div class="stat-top">
+          <span class="muted">Total Accounts</span>
+          <div class="stat-icon">🏦</div>
+        </div>
         <div class="number" id="total">0</div>
+        <div class="stat-caption">All saved bank accounts</div>
       </div>
 
       <div class="card">
-        <div class="muted">Savings Accounts</div>
+        <div class="stat-top">
+          <span class="muted">Savings Accounts</span>
+          <div class="stat-icon">💰</div>
+        </div>
         <div class="number" id="savings">0</div>
+        <div class="stat-caption">Savings account records</div>
       </div>
 
       <div class="card">
-        <div class="muted">Current Accounts</div>
+        <div class="stat-top">
+          <span class="muted">Current Accounts</span>
+          <div class="stat-icon">💳</div>
+        </div>
         <div class="number" id="current">0</div>
+        <div class="stat-caption">Current account records</div>
       </div>
-    </div>
+
+    </section>
 
     <section class="card" id="connectedAccounts">
-      <h2>Saved Bank Accounts</h2>
+
+      <div class="section-header">
+        <div>
+          <h2>Saved Bank Accounts</h2>
+          <p class="muted">
+            Search, filter and manage your account records.
+          </p>
+        </div>
+      </div>
 
       <div class="toolbar">
         <input
           id="search"
           type="search"
-          placeholder="Search bank, holder, last 4 digits"
+          placeholder="Search bank, holder or last 4 digits"
           aria-label="Search accounts"
         >
 
@@ -295,15 +663,17 @@
         <button
           class="secondary"
           type="button"
-          id="resetFiltersButton">
+          id="resetFiltersButton"
+        >
           Reset
         </button>
 
         <button
           class="primary"
           type="button"
-          id="refreshAccountsButton">
-          Refresh Accounts
+          id="refreshAccountsButton"
+        >
+          ↻ Refresh Accounts
         </button>
       </div>
 
@@ -315,30 +685,28 @@
         <table>
           <thead>
             <tr>
-              <th>Account Holder</th>
-              <th>Bank Name</th>
-              <th>Last 4</th>
-              <th>IFSC</th>
-              <th>Branch</th>
-              <th>Account Type</th>
-              <th>Status</th>
+              <th scope="col">Account Holder</th>
+              <th scope="col">Bank Name</th>
+              <th scope="col">Last 4</th>
+              <th scope="col">IFSC</th>
+              <th scope="col">Branch</th>
+              <th scope="col">Account Type</th>
+              <th scope="col">Status</th>
             </tr>
           </thead>
-
           <tbody id="connectedAccountsTable"></tbody>
         </table>
       </div>
+
     </section>
 
-    <!-- RECYCLE BIN -->
-
     <section class="card" id="recycleBin">
-      <div class="heading">
+      <div class="section-header">
         <div>
           <h2>Recycle Bin</h2>
           <p class="muted">
-            Deleted bank accounts can be restored
-            by the Master administrator.
+            Deleted accounts can be restored by
+            the Master administrator.
           </p>
         </div>
       </div>
@@ -347,14 +715,13 @@
         <table>
           <thead>
             <tr>
-              <th>Account Holder</th>
-              <th>Bank</th>
-              <th>Last 4</th>
-              <th>Deleted At</th>
-              <th>Action</th>
+              <th scope="col">Account Holder</th>
+              <th scope="col">Bank</th>
+              <th scope="col">Last 4</th>
+              <th scope="col">Deleted At</th>
+              <th scope="col">Action</th>
             </tr>
           </thead>
-
           <tbody id="trashAccountsTable">
             <tr>
               <td colspan="5">
@@ -431,14 +798,16 @@
       <button
         type="button"
         id="cancelAddAccount"
-        class="secondary">
+        class="secondary"
+      >
         Cancel
       </button>
 
       <button
         type="submit"
         id="saveAccountButton"
-        class="primary">
+        class="primary"
+      >
         Save Account
       </button>
     </form>
@@ -452,20 +821,12 @@
 
       <label>
         Account Holder Name
-        <input
-          name="accountHolder"
-          maxlength="100"
-          required
-        >
+        <input name="accountHolder" maxlength="100" required>
       </label>
 
       <label>
         Bank Name
-        <input
-          name="bankName"
-          maxlength="100"
-          required
-        >
+        <input name="bankName" maxlength="100" required>
       </label>
 
       <label>
@@ -516,30 +877,37 @@
       <button
         type="button"
         id="cancelEditAccount"
-        class="secondary">
+        class="secondary"
+      >
         Cancel
       </button>
 
       <button
         type="submit"
         id="saveEditAccountButton"
-        class="primary">
+        class="primary"
+      >
         Save Changes
       </button>
     </form>
   </dialog>
 
-  <!-- DASHBOARD JAVASCRIPT -->
+  <!-- EXISTING APPLICATION JAVASCRIPT -->
 
   <script
     src="/bank/assets/accounts-view.js"
-    defer>
-  </script>
+    defer
+  ></script>
 
+  <script
+    src="/bank/assets/master-navigation.js"
+    defer
+  ></script>
 
-<script src="/bank/assets/master-navigation.js" defer></script>
-
-<script src="/bank/assets/logout.js" defer></script>
+  <script
+    src="/bank/assets/logout.js"
+    defer
+  ></script>
 
 </body>
 </html>
