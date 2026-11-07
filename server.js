@@ -15,7 +15,7 @@ const app=express();
 app.set('trust proxy', 1);
 app.disable('x-powered-by');app.use(helmet());app.use(express.json({limit:'10kb'}));
 app.use('/api',rateLimit({windowMs:15*60*1000,limit:300,standardHeaders:'draft-7',legacyHeaders:false}));
-app.use(session({name:'bank.sid',store:new PgStore({pool,tableName:'user_sessions',createTableIfMissing:false}),secret:process.env.SESSION_SECRET,resave:false,saveUninitialized:false,cookie:{httpOnly:true,secure:true,sameSite:'strict',maxAge:30*60*1000}}));
+app.use(session({name:'bank.sid',store:new PgStore({pool,tableName:'user_sessions',createTableIfMissing:false}),secret:process.env.SESSION_SECRET,resave:false,saveUninitialized:false,cookie:{httpOnly:true,secure: process.env.NODE_ENV === 'production',sameSite:'strict',maxAge:30*60*1000}}));
 app.use('/api/auth',auth);
 const googleRoutes = require('./google-routes');
 app.use('/api/google', googleRoutes);

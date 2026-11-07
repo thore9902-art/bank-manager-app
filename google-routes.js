@@ -2,6 +2,8 @@
 const express = require('express');
 const crypto = require('node:crypto');
 const pool = require('./db');
+const { canAccessAccount } = require('./account-access');
+
 const {
   authenticated,
   csrf,
@@ -23,7 +25,7 @@ const router = express.Router();
 
 const validAccountId = id =>
   typeof id === 'string' &&
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 
 function safeAccount(account) {
   return {
@@ -39,11 +41,7 @@ function safeAccount(account) {
 }
 
 function validateAccount(body) {
-  if (
-    !body ||
-    typeof body !== 'object' ||
-    Array.isArray(body)
-  ) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
     throw new Error('Invalid account data');
   }
 
@@ -97,35 +95,26 @@ function validateAccount(body) {
   };
 
   if (!data.accountHolder || !data.bankName) {
-    throw new Error(
-      'Account holder and bank name are required'
-    );
+    throw new Error('Account holder and bank name are required');
   }
 
   if (!/^\d{4}$/.test(data.accountLast4)) {
-    throw new Error(
-      'Enter exactly four account digits'
-    );
+    throw new Error('Enter exactly four account digits');
   }
 
-  if (
-    !['Savings', 'Current', 'Other']
-      .includes(data.accountType)
-  ) {
+  if (!['Savings', 'Current', 'Other'].includes(data.accountType)) {
     throw new Error('Invalid account type');
   }
 
-  if (
-    ![
-      '',
-      'Active',
-      'Inactive',
-      'Dormant',
-      'Closed',
-      'Frozen',
-      'Pending'
-    ].includes(data.status)
-  ) {
+  if (![
+    '',
+    'Active',
+    'Inactive',
+    'Dormant',
+    'Closed',
+    'Frozen',
+    'Pending'
+  ].includes(data.status)) {
     throw new Error('Invalid account status');
   }
 
@@ -139,13 +128,43 @@ router.get(
   requirePermission('can_view'),
   async (req, res, next) => {
     try {
+      const user = req.session.user;
       const accounts = await getAccounts();
+
+      let visibleAccounts;
+
+      if (user.role === 'MASTER') {
+        visibleAccounts = accounts;
+      } else if (user.role === 'MANAGER') {
+        const result = await pool.query(
+          `SELECT account_id
+           FROM public.account_user_access
+           WHERE user_id = $1`,
+          [user.id]
+        );
+
+        const allowedIds = new Set(
+          result.rows.map(row =>
+            String(row.account_id).toLowerCase()
+          )
+        );
+
+        visibleAccounts = accounts.filter(account =>
+          allowedIds.has(
+            String(account['ID'] || '').toLowerCase()
+          )
+        );
+      } else {
+        return res.status(403).json({
+          error: 'Access denied'
+        });
+      }
 
       res.set('Cache-Control', 'no-store');
 
       return res.json({
-        accounts: accounts.map(safeAccount),
-        role: req.session.user.role
+        accounts: visibleAccounts.map(safeAccount),
+        role: user.role
       });
     } catch (error) {
       next(error);
@@ -162,6 +181,13 @@ router.post(
   async (req, res, next) => {
     try {
       const user = req.session.user;
+
+      // MASTER-only until secure assignment on creation is implemented.
+      if (user.role !== 'MASTER') {
+        return res.status(403).json({
+          error: 'Account creation is MASTER-only until assignment is implemented'
+        });
+      }
 
       let data;
 
@@ -244,7 +270,7 @@ router.post(
   }
 );
 
-// EDIT ACCOUNT - MASTER OR AUTHORIZED MANAGER
+// EDIT ACCOUNT
 router.put(
   '/accounts/:id',
   authenticated(),
@@ -258,6 +284,12 @@ router.put(
       if (!validAccountId(accountId)) {
         return res.status(400).json({
           error: 'Invalid account ID'
+        });
+      }
+
+      if (!(await canAccessAccount(user, accountId))) {
+        return res.status(403).json({
+          error: 'Account access denied'
         });
       }
 
@@ -296,10 +328,7 @@ router.put(
       });
 
       try {
-        const updated = await updateAccount(
-          accountId,
-          data
-        );
+        const updated = await updateAccount(accountId, data);
 
         if (!updated) {
           return res.status(404).json({
@@ -358,19 +387,49 @@ router.put(
   }
 );
 
-// VIEW RECYCLE BIN - MASTER OR AUTHORIZED MANAGER
+// VIEW RECYCLE BIN
 router.get(
   '/trash',
   authenticated(),
   requirePermission('can_restore'),
   async (req, res, next) => {
     try {
+      const user = req.session.user;
       const records = await getTrashAccounts();
+
+      let visibleRecords;
+
+      if (user.role === 'MASTER') {
+        visibleRecords = records;
+      } else if (user.role === 'MANAGER') {
+        const result = await pool.query(
+          `SELECT account_id
+           FROM public.account_user_access
+           WHERE user_id = $1`,
+          [user.id]
+        );
+
+        const allowedIds = new Set(
+          result.rows.map(row =>
+            String(row.account_id).toLowerCase()
+          )
+        );
+
+        visibleRecords = records.filter(account =>
+          allowedIds.has(
+            String(account['ID'] || '').toLowerCase()
+          )
+        );
+      } else {
+        return res.status(403).json({
+          error: 'Access denied'
+        });
+      }
 
       res.set('Cache-Control', 'no-store');
 
       return res.json({
-        accounts: records.map(account => ({
+        accounts: visibleRecords.map(account => ({
           ...safeAccount(account),
           deletedAt: account['Deleted At'] || '',
           deletedBy: account['Deleted By'] || ''
@@ -382,7 +441,7 @@ router.get(
   }
 );
 
-// DELETE ACCOUNT - MASTER OR AUTHORIZED MANAGER
+// DELETE ACCOUNT
 router.delete(
   '/accounts/:id',
   authenticated(),
@@ -396,6 +455,12 @@ router.delete(
       if (!validAccountId(id)) {
         return res.status(400).json({
           error: 'Invalid account ID'
+        });
+      }
+
+      if (!(await canAccessAccount(user, id))) {
+        return res.status(403).json({
+          error: 'Account access denied'
         });
       }
 
@@ -414,10 +479,7 @@ router.delete(
       let deleted;
 
       try {
-        deleted = await deleteAccount(
-          id,
-          user.username
-        );
+        deleted = await deleteAccount(id, user.username);
       } catch (error) {
         console.error(
           'Delete outcome uncertain:',
@@ -474,7 +536,7 @@ router.delete(
   }
 );
 
-// RESTORE ACCOUNT - MASTER OR AUTHORIZED MANAGER
+// RESTORE ACCOUNT
 router.post(
   '/trash/:id/restore',
   authenticated(),
@@ -488,6 +550,12 @@ router.post(
       if (!validAccountId(id)) {
         return res.status(400).json({
           error: 'Invalid account ID'
+        });
+      }
+
+      if (!(await canAccessAccount(user, id))) {
+        return res.status(403).json({
+          error: 'Account access denied'
         });
       }
 
@@ -563,6 +631,7 @@ router.post(
   }
 );
 
+// MY PERMISSIONS
 router.get(
   '/my-permissions',
   authenticated(),
@@ -597,11 +666,11 @@ router.get(
 
       const result = await pool.query(
         `SELECT
-        COALESCE(p.can_view, false) AS can_view,
-COALESCE(p.can_add, false) AS can_add,
-COALESCE(p.can_edit, false) AS can_edit,
-COALESCE(p.can_delete, false) AS can_delete,
-COALESCE(p.can_restore, false) AS can_restore
+           COALESCE(p.can_view, false) AS can_view,
+           COALESCE(p.can_add, false) AS can_add,
+           COALESCE(p.can_edit, false) AS can_edit,
+           COALESCE(p.can_delete, false) AS can_delete,
+           COALESCE(p.can_restore, false) AS can_restore
          FROM public.app_users u
          LEFT JOIN public.user_permissions p
            ON p.user_id = u.id
@@ -621,13 +690,13 @@ COALESCE(p.can_restore, false) AS can_restore
 
       return res.json({
         role: 'MANAGER',
-      permissions: {
-  can_view: result.rows[0].can_view,
-  can_add: result.rows[0].can_add,
-  can_edit: result.rows[0].can_edit,
-  can_delete: result.rows[0].can_delete,
-  can_restore: result.rows[0].can_restore
-}
+        permissions: {
+          can_view: result.rows[0].can_view,
+          can_add: false,
+          can_edit: result.rows[0].can_edit,
+          can_delete: result.rows[0].can_delete,
+          can_restore: result.rows[0].can_restore
+        }
       });
     } catch (error) {
       next(error);
@@ -635,12 +704,21 @@ COALESCE(p.can_restore, false) AS can_restore
   }
 );
 
+// ACTIVITY HISTORY
 router.get(
   '/activity-history',
   authenticated(),
   requirePermission('can_view_audit'),
   async (req, res, next) => {
     try {
+      // Global history can contain other users' account information.
+      // Restrict to MASTER until scoped history is implemented.
+      if (req.session.user.role !== 'MASTER') {
+        return res.status(403).json({
+          error: 'Access denied'
+        });
+      }
+
       const events = await getActivityHistory();
 
       res.set('Cache-Control', 'no-store');
@@ -653,15 +731,5 @@ router.get(
     }
   }
 );
-module.exports = {
-  getAccounts,
-  addAccount,
-  updateAccount,
-  recordAuditEvent,
-  getTrashAccounts,
-  deleteAccount,
-  restoreAccount,
-  getActivityHistory
-};
 
 module.exports = router;
