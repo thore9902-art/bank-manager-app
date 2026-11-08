@@ -1,4 +1,6 @@
-
+const {
+  decryptAccountNumber
+} = require('./account-crypto');
 const express = require('express');
 const crypto = require('node:crypto');
 const pool = require('./db');
@@ -28,6 +30,7 @@ const validAccountId = id =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 
 
+
 function safeAccount(account) {
   return {
     id: account['ID'] || '',
@@ -44,7 +47,8 @@ function safeAccount(account) {
     reference: account['Reference'] || '',
     aadhaarLast4: account['Aadhaar Last 4'] || '',
     pan: account['Masked PAN Reference'] || '',
-    motherName: account['Mother Name'] || ''
+    motherName: account['Mother Name'] || '',
+    fullAccountNumber: ''
   };
 }
 
@@ -125,6 +129,7 @@ const allowed = [
 
  
 const data = {
+  fullAccountNumber: field('fullAccountNumber', 34),
   accountHolder: field('accountHolder', 100),
   bankName: field('bankName', 100),
   accountLast4: field('accountLast4', 4),
@@ -165,7 +170,19 @@ const data = {
   ].includes(data.status)) {
     throw new Error('Invalid account status');
   }
+if (
+  data.fullAccountNumber &&
+  !/^[0-9]{6,34}$/.test(data.fullAccountNumber)
+) {
+  throw new Error('Invalid full account number');
+}
 
+if (
+  data.fullAccountNumber &&
+  data.fullAccountNumber.slice(-4) !== data.accountLast4
+) {
+  throw new Error('Account last 4 digits do not match');
+}
   return data;
 }
 
@@ -211,7 +228,14 @@ router.get(
       res.set('Cache-Control', 'no-store');
 
       return res.json({
-        accounts: visibleAccounts.map(safeAccount),
+        
+accounts: visibleAccounts.map(account => ({
+  ...safeAccount(account),
+  fullAccountNumber: decryptAccountNumber(
+    account['Full Account Number'] || ''
+  )
+})),
+
         role: user.role
       });
     } catch (error) {

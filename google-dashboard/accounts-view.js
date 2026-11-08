@@ -103,6 +103,37 @@ function renderAccounts() {
     values.forEach(value => {
       row.insertCell().textContent = value || '-';
     });
+    
+const numberCell = row.cells[2];
+
+if (account.fullAccountNumber) {
+  const hiddenText = account.accountLast4
+    ? '•••• ' + account.accountLast4
+    : '••••';
+
+  const numberText = document.createElement('span');
+  numberText.textContent = hiddenText;
+
+  const toggleButton = document.createElement('button');
+  toggleButton.type = 'button';
+  toggleButton.textContent = 'Show';
+  toggleButton.style.marginLeft = '8px';
+
+  let visible = false;
+
+  toggleButton.addEventListener('click', () => {
+    visible = !visible;
+
+    numberText.textContent = visible
+      ? account.fullAccountNumber
+      : hiddenText;
+
+    toggleButton.textContent = visible ? 'Hide' : 'Show';
+  });
+
+  numberCell.replaceChildren(numberText, toggleButton);
+}
+
 
     if (hasActions) {
       const actionCell = row.insertCell();
@@ -282,8 +313,9 @@ function openEditAccount(accountId) {
  
 [
   'accountHolder',
-  'bankName',
-  'accountLast4',
+'bankName',
+'fullAccountNumber',
+'accountLast4',
   'ifscCode',
   'branch',
   'accountType',

@@ -1,4 +1,6 @@
-
+const {
+  encryptAccountNumber
+} = require('./account-crypto');
 require('dotenv').config();
 
 const path = require('node:path');
@@ -145,6 +147,7 @@ async function addAccount(data) {
   const id = data.id || crypto.randomUUID();
 
  
+
 const record = {
   'ID': id,
   'Account Holder': data.accountHolder,
@@ -161,6 +164,8 @@ const record = {
   'Aadhaar Last 4': data.aadhaarLast4,
   'Masked PAN Reference': data.pan,
   'Mother Name': data.motherName,
+  'Full Account Number':
+    encryptAccountNumber(data.fullAccountNumber || ''),
   'Updated At': new Date().toISOString()
 };
 
@@ -187,6 +192,7 @@ const record = {
 async function updateAccount(id, data) {
   if (typeof id !== 'string' || !id.trim()) {
     throw new Error('Invalid account ID');
+    
   }
 
   const rows = await getRows();
@@ -218,6 +224,22 @@ async function updateAccount(id, data) {
   }
 
   const rowNumber = matches[0];
+  const existingRow = rows[rowNumber - 1];
+const fullNumberColumn = headerIndex(
+  headers,
+  'Full Account Number'
+);
+
+if (fullNumberColumn < 0) {
+  throw new Error('Full Account Number column missing');
+}
+
+const existingEncryptedNumber =
+  String(existingRow[fullNumberColumn] || '');
+
+const encryptedFullNumber = data.fullAccountNumber
+  ? encryptAccountNumber(data.fullAccountNumber)
+  : existingEncryptedNumber;
 
   
 const updates = [
@@ -236,6 +258,7 @@ const updates = [
   ['Masked PAN Reference', data.pan],
   ['Mother Name', data.motherName],
   ['Updated At', new Date().toISOString()]
+  ['Full Account Number', encryptedFullNumber],
 ];
 
 
