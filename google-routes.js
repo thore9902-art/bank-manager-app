@@ -256,12 +256,11 @@ router.post(
     try {
       const user = req.session.user;
 
-      // MASTER-only until secure assignment on creation is implemented.
-      if (user.role !== 'MASTER') {
-        return res.status(403).json({
-          error: 'Account creation is MASTER-only until assignment is implemented'
-        });
-      }
+    if (!['MASTER', 'MANAGER'].includes(user.role)) {
+  return res.status(403).json({
+    error: 'Access denied'
+  });
+}
 
       let data;
 
@@ -293,6 +292,14 @@ router.post(
           ...data,
           id: accountId
         });
+        if (user.role === 'MANAGER') {
+  await pool.query(
+    `INSERT INTO public.account_user_access (user_id, account_id)
+     VALUES ($1, $2)
+     ON CONFLICT DO NOTHING`,
+    [user.id, savedId]
+  );
+}
       } catch (error) {
         console.error(
           'Account creation outcome uncertain:',
@@ -305,7 +312,14 @@ router.post(
             'Save outcome uncertain. Check Accounts and AccountChangeAudit before retrying.',
           eventId
         });
-      }
+      }if (user.role === 'MANAGER') {
+  await pool.query(
+    `INSERT INTO public.account_user_access (user_id, account_id)
+     VALUES ($1, $2)
+     ON CONFLICT DO NOTHING`,
+    [user.id, savedId]
+  );
+}
 
       try {
         await recordAuditEvent({
@@ -766,7 +780,7 @@ router.get(
         role: 'MANAGER',
         permissions: {
           can_view: result.rows[0].can_view,
-          can_add: false,
+          can_add: result.rows[0].can_add,
           can_edit: result.rows[0].can_edit,
           can_delete: result.rows[0].can_delete,
           can_restore: result.rows[0].can_restore
