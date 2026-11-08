@@ -27,7 +27,20 @@ app.use('/api/auth',auth);
 const googleRoutes = require('./google-routes');
 app.use('/api/google', googleRoutes);
 app.use('/api/master',permissions);
-function page(route,file,role){app.get(route,authenticated(role),(req,res)=>{res.set('Cache-Control','no-store');res.sendFile(path.join(__dirname,'public',file));});}
+
+function page(route, file, role) {
+  app.get(route, (req, res, next) => {
+    if (!req.session?.user) {
+      return res.redirect('/master/login');
+    }
+
+    authenticated(role)(req, res, next);
+  }, (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    res.sendFile(path.join(__dirname, 'public', file));
+  });
+}
+
 app.get('/master/login',(req,res)=>res.sendFile(path.join(__dirname,'public','master-login.html')));
 app.get('/manager/login',(req,res)=>res.sendFile(path.join(__dirname,'public','manager-login.html')));
 page('/master/dashboard','master-dashboard.html','MASTER');
