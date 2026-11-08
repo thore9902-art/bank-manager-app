@@ -15,7 +15,14 @@ const app=express();
 app.set('trust proxy', 1);
 app.disable('x-powered-by');app.use(helmet());app.use(express.json({limit:'10kb'}));
 app.use('/api',rateLimit({windowMs:15*60*1000,limit:300,standardHeaders:'draft-7',legacyHeaders:false}));
-app.use(session({name:'bank.sid',store:new PgStore({pool,tableName:'user_sessions',createTableIfMissing:false}),secret:process.env.SESSION_SECRET,resave:false,saveUninitialized:false,cookie:{httpOnly:true,secure: process.env.NODE_ENV === 'production',sameSite:'strict',maxAge:30*60*1000}}));
+app.use(session({name:'bank.sid',
+store: new PgStore({
+  pool,
+  schemaName: 'public',
+  tableName: 'user_sessions',
+  createTableIfMissing: false
+})
+,secret:process.env.SESSION_SECRET,resave:false,saveUninitialized:false,cookie:{httpOnly:true,secure: process.env.NODE_ENV === 'production',sameSite:'strict',maxAge:30*60*1000}}));
 app.use('/api/auth',auth);
 const googleRoutes = require('./google-routes');
 app.use('/api/google', googleRoutes);
@@ -81,6 +88,24 @@ page('/master/users', 'master-users.html', 'MASTER');
 page('/master/activity-history', 'activity-history.html', 'MASTER');
 for(const name of ['login.js','dashboard.js','master-permissions.js','master-users.js','style.css'])app.get('/assets/'+name,(req,res)=>res.sendFile(path.join(__dirname,'public',name)));
 app.get('/api/status',(req,res)=>res.json({status:'OK'}));
+
+app.get('/api/debug/database', authenticated('MASTER'), async (req, res, next) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        current_database() AS database_name,
+        current_user AS database_role,
+        to_regclass('public.user_sessions') IS NOT NULL
+          AS session_table_exists
+    `);
+
+    res.set('Cache-Control', 'no-store');
+    res.json(result.rows[0]);
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.get('/',(req,res)=>res.redirect('/master/login'));
 app.use((err,req,res,next)=>{console.error(err);res.status(500).json({error:'Internal server error'});});
 const port=Number(process.env.PORT||3000);
