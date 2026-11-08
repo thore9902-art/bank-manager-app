@@ -81,10 +81,12 @@ if (data.pan) {
   }
 
   
+
 const allowed = [
   'accountHolder',
   'bankName',
   'accountLast4',
+  'fullAccountNumber',
   'ifscCode',
   'branch',
   'accountType',
