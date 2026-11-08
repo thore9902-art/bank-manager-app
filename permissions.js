@@ -44,11 +44,12 @@ function validUsername(username) {
 function validPassword(password) {
   return (
     typeof password === 'string' &&
-    password.length >= 12 &&
+    password.length >= 6 &&
     password.length <= 128 &&
     Buffer.byteLength(password, 'utf8') <= 1024
   );
 }
+
 
 function validBody(body, fields) {
   return (
@@ -160,7 +161,7 @@ router.post(
 
       if (!validPassword(password)) {
         return res.status(400).json({
-          error: 'Password must be 12-128 characters'
+          error: 'Password must be 6-128 characters'
         });
       }
 
@@ -319,7 +320,7 @@ router.post(
         !validPassword(body.newPassword)
       ) {
         return res.status(400).json({
-          error: 'New password must be 12-128 characters'
+          error: 'New password must be 6-128 characters'
         });
       }
 
