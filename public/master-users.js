@@ -99,13 +99,13 @@ async function loadManagers() {
 
       reset.addEventListener('click', async () => {
         const password = prompt(
-          `Enter a new password (minimum 12 characters) for ${manager.username}:`
+          `Enter a new password (minimum 6 characters) for ${manager.username}:`
         );
 
         if (password === null) return;
 
-        if (password.length < 12 || password.length > 128) {
-          showMessage('Password must be 12-128 characters');
+        if (password.length < 6 || password.length > 128) {
+          showMessage('Password must be 6-128 characters');
           return;
         }
 
