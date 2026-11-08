@@ -279,18 +279,27 @@ function openEditAccount(accountId) {
 
   editingAccountId = accountId;
 
-  [
-    'accountHolder',
-    'bankName',
-    'accountLast4',
-    'ifscCode',
-    'branch',
-    'accountType',
-    'status'
-  ].forEach(name => {
-    const input = form.elements.namedItem(name);
-    if (input) input.value = account[name] || '';
-  });
+ 
+[
+  'accountHolder',
+  'bankName',
+  'accountLast4',
+  'ifscCode',
+  'branch',
+  'accountType',
+  'status',
+  'cardLast4',
+  'note',
+  'email',
+  'reference',
+  'aadhaarLast4',
+  'pan',
+  'motherName'
+].forEach(name => {
+  const input = form.elements.namedItem(name);
+  if (input) input.value = account[name] || '';
+});
+
 
   message.textContent = '';
   dialog.showModal();

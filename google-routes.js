@@ -27,6 +27,7 @@ const validAccountId = id =>
   typeof id === 'string' &&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 
+
 function safeAccount(account) {
   return {
     id: account['ID'] || '',
@@ -36,24 +37,62 @@ function safeAccount(account) {
     ifscCode: account['IFSC Code'] || '',
     branch: account['Branch'] || '',
     accountType: account['Account Type'] || '',
-    status: account['Account Status'] || ''
+    status: account['Account Status'] || '',
+    cardLast4: account['Card Last 4'] || '',
+    note: account['Notes'] || '',
+    email: account['Email'] || '',
+    reference: account['Reference'] || '',
+    aadhaarLast4: account['Aadhaar Last 4'] || '',
+    pan: account['Masked PAN Reference'] || '',
+    motherName: account['Mother Name'] || ''
   };
 }
+
 
 function validateAccount(body) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     throw new Error('Invalid account data');
+    
+if (data.cardLast4 && !/^\d{4}$/.test(data.cardLast4)) {
+  throw new Error('Card last 4 must contain four digits');
+}
+
+if (data.aadhaarLast4 && !/^\d{4}$/.test(data.aadhaarLast4)) {
+  throw new Error('Aadhaar last 4 must contain four digits');
+}
+
+if (data.email &&
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+  throw new Error('Invalid email address');
+}
+
+if (data.pan) {
+  if (/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(data.pan)) {
+    data.pan = '******' + data.pan.slice(-4);
+  } else if (!/^\*{6}[0-9]{3}[A-Z]$/.test(data.pan)) {
+    throw new Error('Invalid PAN reference');
+  }
+}
+
   }
 
-  const allowed = [
-    'accountHolder',
-    'bankName',
-    'accountLast4',
-    'ifscCode',
-    'branch',
-    'accountType',
-    'status'
-  ];
+  
+const allowed = [
+  'accountHolder',
+  'bankName',
+  'accountLast4',
+  'ifscCode',
+  'branch',
+  'accountType',
+  'status',
+  'cardLast4',
+  'note',
+  'email',
+  'reference',
+  'aadhaarLast4',
+  'pan',
+  'motherName'
+];
 
   for (const key of Object.keys(body)) {
     if (!allowed.includes(key)) {
@@ -84,15 +123,24 @@ function validateAccount(body) {
     return value;
   }
 
-  const data = {
-    accountHolder: field('accountHolder', 100),
-    bankName: field('bankName', 100),
-    accountLast4: field('accountLast4', 4),
-    ifscCode: field('ifscCode', 20),
-    branch: field('branch', 100),
-    accountType: field('accountType', 20),
-    status: field('status', 20)
-  };
+ 
+const data = {
+  accountHolder: field('accountHolder', 100),
+  bankName: field('bankName', 100),
+  accountLast4: field('accountLast4', 4),
+  ifscCode: field('ifscCode', 20),
+  branch: field('branch', 100),
+  accountType: field('accountType', 20),
+  status: field('status', 20),
+  cardLast4: field('cardLast4', 4),
+  note: field('note', 500),
+  email: field('email', 150),
+  reference: field('reference', 100),
+  aadhaarLast4: field('aadhaarLast4', 4),
+  pan: field('pan', 10).toUpperCase(),
+  motherName: field('motherName', 100)
+};
+
 
   if (!data.accountHolder || !data.bankName) {
     throw new Error('Account holder and bank name are required');

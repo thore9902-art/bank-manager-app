@@ -144,17 +144,26 @@ async function addAccount(data) {
 
   const id = data.id || crypto.randomUUID();
 
-  const record = {
-    'ID': id,
-    'Account Holder': data.accountHolder,
-    'Bank Name': data.bankName,
-    'Account Last 4 Digits': data.accountLast4,
-    'IFSC Code': data.ifscCode,
-    'Branch': data.branch,
-    'Account Type': data.accountType,
-    'Account Status': data.status,
-    'Updated At': new Date().toISOString()
-  };
+ 
+const record = {
+  'ID': id,
+  'Account Holder': data.accountHolder,
+  'Bank Name': data.bankName,
+  'Account Last 4 Digits': data.accountLast4,
+  'IFSC Code': data.ifscCode,
+  'Branch': data.branch,
+  'Account Type': data.accountType,
+  'Account Status': data.status,
+  'Card Last 4': data.cardLast4,
+  'Notes': data.note,
+  'Email': data.email,
+  'Reference': data.reference,
+  'Aadhaar Last 4': data.aadhaarLast4,
+  'Masked PAN Reference': data.pan,
+  'Mother Name': data.motherName,
+  'Updated At': new Date().toISOString()
+};
+
 
   const row = HEADERS.map(
     (header) => record[header] || ''
@@ -210,16 +219,25 @@ async function updateAccount(id, data) {
 
   const rowNumber = matches[0];
 
-  const updates = [
-    ['Account Holder', data.accountHolder],
-    ['Bank Name', data.bankName],
-    ['Account Last 4 Digits', data.accountLast4],
-    ['IFSC Code', data.ifscCode],
-    ['Branch', data.branch],
-    ['Account Type', data.accountType],
-    ['Account Status', data.status],
-    ['Updated At', new Date().toISOString()]
-  ];
+  
+const updates = [
+  ['Account Holder', data.accountHolder],
+  ['Bank Name', data.bankName],
+  ['Account Last 4 Digits', data.accountLast4],
+  ['IFSC Code', data.ifscCode],
+  ['Branch', data.branch],
+  ['Account Type', data.accountType],
+  ['Account Status', data.status],
+  ['Card Last 4', data.cardLast4],
+  ['Notes', data.note],
+  ['Email', data.email],
+  ['Reference', data.reference],
+  ['Aadhaar Last 4', data.aadhaarLast4],
+  ['Masked PAN Reference', data.pan],
+  ['Mother Name', data.motherName],
+  ['Updated At', new Date().toISOString()]
+];
+
 
   const dataRanges = updates.map(([header, value]) => {
     const index = headerIndex(headers, header);
