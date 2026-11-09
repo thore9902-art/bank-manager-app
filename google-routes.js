@@ -1,9 +1,8 @@
-const {
-  decryptAccountNumber
-} = require('./account-crypto');
+
 const express = require('express');
 const crypto = require('node:crypto');
 const pool = require('./db');
+const { decryptAccountNumber } = require('./account-crypto');
 const { canAccessAccount } = require('./account-access');
 
 const {
@@ -29,8 +28,6 @@ const validAccountId = id =>
   typeof id === 'string' &&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 
-
-
 function safeAccount(account) {
   return {
     id: account['ID'] || '',
@@ -52,53 +49,28 @@ function safeAccount(account) {
   };
 }
 
-
 function validateAccount(body) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     throw new Error('Invalid account data');
-    
-if (data.cardLast4 && !/^\d{4}$/.test(data.cardLast4)) {
-  throw new Error('Card last 4 must contain four digits');
-}
-
-if (data.aadhaarLast4 && !/^\d{4}$/.test(data.aadhaarLast4)) {
-  throw new Error('Aadhaar last 4 must contain four digits');
-}
-
-if (data.email &&
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-  throw new Error('Invalid email address');
-}
-
-if (data.pan) {
-  if (/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(data.pan)) {
-    data.pan = '******' + data.pan.slice(-4);
-  } else if (!/^\*{6}[0-9]{3}[A-Z]$/.test(data.pan)) {
-    throw new Error('Invalid PAN reference');
-  }
-}
-
   }
 
-  
-
-const allowed = [
-  'accountHolder',
-  'bankName',
-  'accountLast4',
-  'fullAccountNumber',
-  'ifscCode',
-  'branch',
-  'accountType',
-  'status',
-  'cardLast4',
-  'note',
-  'email',
-  'reference',
-  'aadhaarLast4',
-  'pan',
-  'motherName'
-];
+  const allowed = [
+    'accountHolder',
+    'bankName',
+    'accountLast4',
+    'fullAccountNumber',
+    'ifscCode',
+    'branch',
+    'accountType',
+    'status',
+    'cardLast4',
+    'note',
+    'email',
+    'reference',
+    'aadhaarLast4',
+    'pan',
+    'motherName'
+  ];
 
   for (const key of Object.keys(body)) {
     if (!allowed.includes(key)) {
@@ -129,25 +101,23 @@ const allowed = [
     return value;
   }
 
- 
-const data = {
-  fullAccountNumber: field('fullAccountNumber', 34),
-  accountHolder: field('accountHolder', 100),
-  bankName: field('bankName', 100),
-  accountLast4: field('accountLast4', 4),
-  ifscCode: field('ifscCode', 20),
-  branch: field('branch', 100),
-  accountType: field('accountType', 20),
-  status: field('status', 20),
-  cardLast4: field('cardLast4', 4),
-  note: field('note', 500),
-  email: field('email', 150),
-  reference: field('reference', 100),
-  aadhaarLast4: field('aadhaarLast4', 4),
-  pan: field('pan', 10).toUpperCase(),
-  motherName: field('motherName', 100)
-};
-
+  const data = {
+    fullAccountNumber: field('fullAccountNumber', 34),
+    accountHolder: field('accountHolder', 100),
+    bankName: field('bankName', 100),
+    accountLast4: field('accountLast4', 4),
+    ifscCode: field('ifscCode', 20),
+    branch: field('branch', 100),
+    accountType: field('accountType', 20),
+    status: field('status', 20),
+    cardLast4: field('cardLast4', 4),
+    note: field('note', 500),
+    email: field('email', 150),
+    reference: field('reference', 100),
+    aadhaarLast4: field('aadhaarLast4', 4),
+    pan: field('pan', 10).toUpperCase(),
+    motherName: field('motherName', 100)
+  };
 
   if (!data.accountHolder || !data.bankName) {
     throw new Error('Account holder and bank name are required');
@@ -172,19 +142,37 @@ const data = {
   ].includes(data.status)) {
     throw new Error('Invalid account status');
   }
-if (
-  data.fullAccountNumber &&
-  !/^[0-9]{6,34}$/.test(data.fullAccountNumber)
-) {
-  throw new Error('Invalid full account number');
-}
 
-if (
-  data.fullAccountNumber &&
-  data.fullAccountNumber.slice(-4) !== data.accountLast4
-) {
-  throw new Error('Account last 4 digits do not match');
-}
+  if (
+    data.fullAccountNumber &&
+    !/^[0-9]{6,34}$/.test(data.fullAccountNumber)
+  ) {
+    throw new Error('Invalid full account number');
+  }
+
+  if (
+    data.fullAccountNumber &&
+    data.fullAccountNumber.slice(-4) !== data.accountLast4
+  ) {
+    throw new Error('Account last 4 digits do not match');
+  }
+
+  if (data.cardLast4 && !/^\d{4}$/.test(data.cardLast4)) {
+    throw new Error('Card last 4 must contain four digits');
+  }
+
+  if (data.aadhaarLast4 && !/^\d{4}$/.test(data.aadhaarLast4)) {
+    throw new Error('Aadhaar last 4 must contain four digits');
+  }
+
+  if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+    throw new Error('Invalid email address');
+  }
+
+  if (data.pan && !/^\*{6}[0-9]{3}[A-Z]$/.test(data.pan)) {
+    throw new Error('Invalid masked PAN reference');
+  }
+
   return data;
 }
 
@@ -230,14 +218,12 @@ router.get(
       res.set('Cache-Control', 'no-store');
 
       return res.json({
-        
-accounts: visibleAccounts.map(account => ({
-  ...safeAccount(account),
-  fullAccountNumber: decryptAccountNumber(
-    account['Full Account Number'] || ''
-  )
-})),
-
+        accounts: visibleAccounts.map(account => ({
+          ...safeAccount(account),
+          fullAccountNumber: decryptAccountNumber(
+            account['Full Account Number'] || ''
+          )
+        })),
         role: user.role
       });
     } catch (error) {
@@ -256,11 +242,11 @@ router.post(
     try {
       const user = req.session.user;
 
-    if (!['MASTER', 'MANAGER'].includes(user.role)) {
-  return res.status(403).json({
-    error: 'Access denied'
-  });
-}
+      if (!['MASTER', 'MANAGER'].includes(user.role)) {
+        return res.status(403).json({
+          error: 'Access denied'
+        });
+      }
 
       let data;
 
@@ -292,14 +278,18 @@ router.post(
           ...data,
           id: accountId
         });
+
+        // Assign new account to its MANAGER.
         if (user.role === 'MANAGER') {
-  await pool.query(
-    `INSERT INTO public.account_user_access (user_id, account_id)
-     VALUES ($1, $2)
-     ON CONFLICT DO NOTHING`,
-    [user.id, savedId]
-  );
-}
+          await pool.query(
+            `INSERT INTO public.account_user_access
+               (user_id, account_id)
+             VALUES ($1, $2)
+             ON CONFLICT (user_id, account_id)
+             DO NOTHING`,
+            [user.id, savedId]
+          );
+        }
       } catch (error) {
         console.error(
           'Account creation outcome uncertain:',
@@ -312,14 +302,7 @@ router.post(
             'Save outcome uncertain. Check Accounts and AccountChangeAudit before retrying.',
           eventId
         });
-      }if (user.role === 'MANAGER') {
-  await pool.query(
-    `INSERT INTO public.account_user_access (user_id, account_id)
-     VALUES ($1, $2)
-     ON CONFLICT DO NOTHING`,
-    [user.id, savedId]
-  );
-}
+      }
 
       try {
         await recordAuditEvent({
@@ -799,8 +782,6 @@ router.get(
   requirePermission('can_view_audit'),
   async (req, res, next) => {
     try {
-      // Global history can contain other users' account information.
-      // Restrict to MASTER until scoped history is implemented.
       if (req.session.user.role !== 'MASTER') {
         return res.status(403).json({
           error: 'Access denied'
