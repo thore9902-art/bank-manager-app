@@ -103,8 +103,23 @@ function requirePermission(permission) {
       }
 
       if (user.role === 'MASTER') {
-        return next();
-      }
+  const result = await pool.query(
+    `SELECT id
+     FROM public.app_users
+     WHERE id = $1
+       AND role = 'MASTER'
+       AND is_active = true`,
+    [user.id]
+  );
+
+  if (!result.rows.length) {
+    return res.status(401).json({
+      error: 'Session no longer valid'
+    });
+  }
+
+  return next();
+}
 
       if (user.role !== 'MANAGER') {
         return res.status(403).json({
